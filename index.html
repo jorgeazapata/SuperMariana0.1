@@ -3,40 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Móvil</title>
+    <title>Dino Fix Final</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
         body { 
             display: flex; justify-content: center; align-items: center; 
-            height: 100vh; background-color: #f0f0f0; overflow: hidden;
-            font-family: sans-serif;
+            height: 100vh; background-color: #222; overflow: hidden;
+            font-family: Arial, sans-serif;
         }
         #game { 
-            width: 100%; max-width: 500px; height: 200px; 
-            background: white; border-bottom: 2px solid #535353;
+            width: 95%; max-width: 500px; height: 150px; 
+            background: #eee; border-bottom: 4px solid #555;
             position: relative; overflow: hidden;
         }
         #dino { 
-            width: 40px; height: 40px; background-color: #535353; 
-            position: absolute; bottom: 0; left: 20px; 
+            width: 35px; height: 35px; background-color: #333; 
+            position: absolute; bottom: 0; left: 30px; 
         }
         #cactus { 
-            width: 20px; height: 40px; background-color: #2ecc71; 
-            position: absolute; bottom: 0; right: -30px; 
-            animation: move 1.5s infinite linear;
+            width: 20px; height: 35px; background-color: #e74c3c; 
+            position: absolute; bottom: 0; left: 100%; /* Empieza a la derecha */
         }
-        .jump { animation: jump 0.5s ease-out; }
-
-        @keyframes move {
-            0% { right: -30px; }
-            100% { right: 110%; }
-        }
+        .jump-anim { animation: jump 0.5s ease-out; }
         @keyframes jump {
-            0% { bottom: 0; }
-            50% { bottom: 100px; }
-            100% { bottom: 0; }
+            0%, 100% { bottom: 0; }
+            50% { bottom: 80px; }
         }
-        #score { position: absolute; top: 10px; right: 20px; font-weight: bold; }
+        #score { position: absolute; top: 5px; left: 10px; color: #333; font-weight: bold; }
     </style>
 </head>
 <body ontouchstart="jump()" onclick="jump()">
@@ -51,29 +44,48 @@
         const dino = document.getElementById("dino");
         const cactus = document.getElementById("cactus");
         const scoreDisplay = document.getElementById("score");
+        
+        let cactusX = 100; // Posición en porcentaje (empieza en 100%)
         let score = 0;
+        let gameActive = true;
+
+        // Bucle principal del juego (Movimiento y Colisión)
+        function gameLoop() {
+            if (!gameActive) return;
+
+            // 1. Mover el cactus hacia la izquierda
+            cactusX -= 1.5; // Velocidad del cactus
+            if (cactusX < -5) {
+                cactusX = 100; // Reiniciar posición
+                score += 10;
+                scoreDisplay.innerText = "Puntos: " + score;
+            }
+            cactus.style.left = cactusX + "%";
+
+            // 2. Detectar colisión
+            // Obtenemos la altura del dino
+            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
+            
+            // Si el cactus está cerca del dino (entre el 10% y el 20% de la pantalla)
+            // Y el dino está a menos de 35px del suelo
+            if (cactusX > 8 && cactusX < 18 && dinoBottom < 30) {
+                gameActive = false;
+                alert("¡GAME OVER! Tu récord: " + score);
+                location.reload();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
 
         function jump() {
-            if (!dino.classList.contains("jump")) {
-                dino.classList.add("jump");
-                setTimeout(() => dino.classList.remove("jump"), 500);
+            if (!dino.classList.contains("jump-anim")) {
+                dino.classList.add("jump-anim");
+                setTimeout(() => dino.classList.remove("jump-anim"), 500);
             }
         }
 
-        setInterval(() => {
-            let dinoTop = parseInt(window.getComputedStyle(dino).getPropertyValue("top"));
-            let cactusLeft = parseInt(window.getComputedStyle(cactus).getPropertyValue("left"));
-
-            // Ajuste de colisión para pantallas pequeñas
-            if (cactusLeft < 60 && cactusLeft > 20 && dinoTop >= 160) {
-                alert("¡Perdiste! Puntaje: " + score);
-                score = 0;
-                location.reload();
-            } else if (cactusLeft < 20 && cactusLeft > 15) {
-                score++;
-                scoreDisplay.innerText = "Puntos: " + score;
-            }
-        }, 50); // Un poco más lento para procesadores móviles
+        // Iniciar el juego
+        gameLoop();
     </script>
 </body>
 </html>
