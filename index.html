@@ -3,74 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Moto G75</title>
+    <title>Dino Fix Final</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
-        body { 
-            background: #f0f0f0; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; overflow: hidden; font-family: sans-serif;
-        }
+        body { background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
         #game { 
-            width: 95vw; height: 150px; background: #fff; 
-            position: relative; border-bottom: 3px solid #535353;
-            overflow: hidden;
+            width: 90vw; height: 180px; background: white; 
+            position: relative; border-bottom: 4px solid #555; overflow: hidden;
         }
-        #dino { 
-            width: 35px; height: 35px; background: #535353; 
-            position: absolute; bottom: 0; left: 30px; 
-        }
+        #dino { width: 35px; height: 35px; background: #333; position: absolute; bottom: 0; left: 40px; }
         #cactus { 
-            width: 20px; height: 35px; background: #ff4d4d; 
-            position: absolute; bottom: 0; left: 100%;
+            width: 20px; height: 40px; background: #ff4d4d; 
+            position: absolute; bottom: 0; left: 100%; /* Forzado a iniciar en el borde derecho */
         }
         #score { position: absolute; top: 10px; right: 20px; font-weight: bold; font-size: 20px; }
         .jump { animation: jump 0.5s ease-out; }
-        @keyframes jump {
-            0%, 100% { bottom: 0; }
-            50% { bottom: 80px; }
-        }
+        @keyframes jump { 0%, 100% { bottom: 0; } 50% { bottom: 100px; } }
     </style>
 </head>
-<body onclick="doJump()" ontouchstart="doJump()">
-
+<body onclick="jump()" ontouchstart="jump()">
     <div id="game">
         <div id="score">COP 0</div>
         <div id="dino"></div>
         <div id="cactus"></div>
     </div>
-
     <script>
         const dino = document.getElementById("dino");
         const cactus = document.getElementById("cactus");
         const scoreElement = document.getElementById("score");
         
         let score = 0;
-        let gameWidth = document.getElementById("game").offsetWidth;
-        let cactusPos = gameWidth; 
-        let speed = 4;
+        let pos = 100; // Posición inicial en porcentaje
+        let speed = 1.5;
 
-        function doJump() {
+        function jump() {
             if (!dino.classList.contains("jump")) {
                 dino.classList.add("jump");
                 setTimeout(() => dino.classList.remove("jump"), 500);
             }
         }
 
-        function loop() {
-            cactusPos -= speed;
+        function play() {
+            pos -= speed;
             
-            // Si el cactus sale por la izquierda
-            if (cactusPos < -20) {
-                cactusPos = gameWidth;
+            // Si el cactus sale por la izquierda, reinicia a la derecha
+            if (pos < -5) {
+                pos = 100;
                 score += 100;
                 scoreElement.innerHTML = "COP " + score;
-                speed += 0.1;
+                speed += 0.05;
             }
+            
+            // Aplicar la posición en porcentaje para que siempre se vea
+            cactus.style.left = pos + "%";
 
-            cactus.style.left = cactusPos + "px";
-
-            // Colisión
+            // Colisión precisa
             let d = dino.getBoundingClientRect();
             let c = cactus.getBoundingClientRect();
 
@@ -78,14 +65,9 @@
                 alert("¡GAME OVER!\nTotal: COP " + score);
                 location.reload();
             }
-
-            requestAnimationFrame(loop);
+            requestAnimationFrame(play);
         }
-
-        // Detectar si cambias el tamaño de la pantalla o giras el celular
-        window.onresize = () => { gameWidth = document.getElementById("game").offsetWidth; };
-
-        loop();
+        play();
     </script>
 </body>
 </html>
