@@ -2,72 +2,131 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Fix Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Chrome Clone</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
-        body { background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
-        #game { 
-            width: 90vw; height: 180px; background: white; 
-            position: relative; border-bottom: 4px solid #555; overflow: hidden;
+        /* Estilos generales */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f7f7f7;
+            font-family: Arial, sans-serif;
         }
-        #dino { width: 35px; height: 35px; background: #333; position: absolute; bottom: 0; left: 40px; }
-        #cactus { 
-            width: 20px; height: 40px; background: #ff4d4d; 
-            position: absolute; bottom: 0; left: 100%; /* Forzado a iniciar en el borde derecho */
+
+        #game {
+            width: 600px;
+            height: 200px;
+            border-bottom: 2px solid #535353;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
         }
-        #score { position: absolute; top: 10px; right: 20px; font-weight: bold; font-size: 20px; }
-        .jump { animation: jump 0.5s ease-out; }
-        @keyframes jump { 0%, 100% { bottom: 0; } 50% { bottom: 100px; } }
+
+        /* El Dinosaurio */
+        #dino {
+            width: 40px;
+            height: 40px;
+            background-color: #535353;
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+        }
+
+        /* El Obstáculo */
+        #cactus {
+            width: 20px;
+            height: 40px;
+            background-color: #ff4d4d;
+            position: absolute;
+            bottom: 0;
+            right: -20px;
+        }
+
+        /* Animaciones */
+        .animate-jump {
+            animation: jump 0.5s linear;
+        }
+
+        .cactus-move {
+            animation: move 1.5s infinite linear;
+        }
+
+        @keyframes jump {
+            0% { bottom: 0; }
+            30% { bottom: 100px; }
+            70% { bottom: 100px; }
+            100% { bottom: 0; }
+        }
+
+        @keyframes move {
+            0% { right: -20px; }
+            100% { right: 600px; }
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: #535353;
+            font-size: 20px;
+        }
     </style>
 </head>
-<body onclick="jump()" ontouchstart="jump()">
+<body>
+
     <div id="game">
-        <div id="score">COP 0</div>
+        <div id="score">0</div>
         <div id="dino"></div>
-        <div id="cactus"></div>
+        <div id="cactus" class="cactus-move"></div>
     </div>
+
     <script>
         const dino = document.getElementById("dino");
         const cactus = document.getElementById("cactus");
         const scoreElement = document.getElementById("score");
-        
         let score = 0;
-        let pos = 100; // Posición inicial en porcentaje
-        let speed = 1.5;
 
+        // Función para saltar
         function jump() {
-            if (!dino.classList.contains("jump")) {
-                dino.classList.add("jump");
-                setTimeout(() => dino.classList.remove("jump"), 500);
+            if (!dino.classList.contains("animate-jump")) {
+                dino.classList.add("animate-jump");
+                setTimeout(() => {
+                    dino.classList.remove("animate-jump");
+                }, 500);
             }
         }
 
-        function play() {
-            pos -= speed;
-            
-            // Si el cactus sale por la izquierda, reinicia a la derecha
-            if (pos < -5) {
-                pos = 100;
-                score += 100;
-                scoreElement.innerHTML = "COP " + score;
-                speed += 0.05;
-            }
-            
-            // Aplicar la posición en porcentaje para que siempre se vea
-            cactus.style.left = pos + "%";
+        // Detectar tecla espacio o click
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space") jump();
+        });
+        
+        document.addEventListener("touchstart", jump);
 
-            // Colisión precisa
-            let d = dino.getBoundingClientRect();
-            let c = cactus.getBoundingClientRect();
+        // Lógica de colisión y puntaje
+        const checkDead = setInterval(() => {
+            // Posición actual del Dino (específicamente su altura)
+            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
+            
+            // Posición actual del Cactus
+            let cactusLeft = parseInt(window.getComputedStyle(cactus).getPropertyValue("left"));
 
-            if (d.right > c.left && d.left < c.right && d.bottom > c.top) {
-                alert("¡GAME OVER!\nTotal: COP " + score);
-                location.reload();
+            // Colisión: Si el cactus está entre 50px y 90px (donde está el dino)
+            // y el dino está a menos de 40px del suelo.
+            if (cactusLeft > 50 && cactusLeft < 90 && dinoBottom <= 40) {
+                cactus.style.animation = "none";
+                cactus.style.display = "none";
+                alert("Game Over! Tu puntaje: " + Math.floor(score));
+                location.reload(); // Reinicia el juego
+            } else {
+                score += 0.01;
+                scoreElement.innerHTML = Math.floor(score);
             }
-            requestAnimationFrame(play);
-        }
-        play();
+        }, 10);
     </script>
 </body>
 </html>
