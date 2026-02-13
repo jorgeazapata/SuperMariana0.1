@@ -3,95 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Canvas</title>
+    <title>Dino Final Fix</title>
     <style>
-        body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #333; font-family: sans-serif; }
-        canvas { background: #fff; border-bottom: 5px solid #666; max-width: 100%; height: auto; }
-        #btn { padding: 15px 30px; font-size: 20px; margin-top: 20px; cursor: pointer; background: #2ecc71; color: white; border: none; border-radius: 5px; }
+        body { 
+            margin: 0; padding: 0; overflow: hidden; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; background-color: #f7f7f7; font-family: sans-serif;
+        }
+        #gameContainer {
+            width: 95%; 
+            height: 150px; 
+            background: white; 
+            border-bottom: 2px solid #535353; 
+            position: relative; 
+            overflow: hidden; /* Esto es clave */
+        }
+        #dino {
+            width: 35px; height: 35px; 
+            background-color: #535353; 
+            position: absolute; bottom: 0; left: 20px;
+        }
+        #cactus {
+            width: 20px; height: 35px; 
+            background-color: #ff4d4d; /* Rojo para que lo veas bien */
+            position: absolute; bottom: 0; 
+            right: -20px; /* Empieza justo afuera */
+        }
+        #score {
+            position: absolute; top: 10px; right: 20px; 
+            font-size: 18px; color: #535353; font-weight: bold;
+        }
+        /* Animaciones */
+        .jump { animation: dinoJump 0.5s ease-out; }
+        .move { animation: cactusMove 1.5s infinite linear; }
+
+        @keyframes dinoJump {
+            0%, 100% { bottom: 0; }
+            50% { bottom: 80px; }
+        }
+        @keyframes cactusMove {
+            0% { right: -20px; }
+            100% { right: 100%; } /* Cruza todo el ancho disponible */
+        }
     </style>
 </head>
-<body>
+<body onclick="jump()" ontouchstart="jump()">
 
-    <canvas id="gameCanvas" width="600" height="200"></canvas>
-    <button id="btn" onclick="startGame()">¡JUGAR!</button>
+    <div id="gameContainer">
+        <div id="score">0</div>
+        <div id="dino"></div>
+        <div id="cactus" class="move"></div>
+    </div>
 
     <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const btn = document.getElementById("btn");
-
-        let dinoY = 160;
-        let dinoJump = false;
-        let jumpSpeed = 0;
-        let cactusX = 600;
+        const dino = document.getElementById("dino");
+        const cactus = document.getElementById("cactus");
+        const scoreElement = document.getElementById("score");
         let score = 0;
-        let active = false;
 
-        function draw() {
-            if (!active) return;
-
-            // Limpiar pantalla
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Dibujar Dino (Cuadrado Negro)
-            ctx.fillStyle = "#333";
-            ctx.fillRect(50, dinoY, 40, 40);
-
-            // Dibujar Arbusto (Rectángulo Rojo)
-            ctx.fillStyle = "#e74c3c";
-            ctx.fillRect(cactusX, 160, 20, 40);
-
-            // Dibujar Puntaje
-            ctx.fillStyle = "#000";
-            ctx.font = "20px Arial";
-            ctx.fillText("Puntos: " + score, 20, 30);
-
-            // Lógica de Salto
-            if (dinoJump) {
-                dinoY -= jumpSpeed;
-                jumpSpeed -= 1.5;
-                if (dinoY >= 160) {
-                    dinoY = 160;
-                    dinoJump = false;
-                }
+        function jump() {
+            if (!dino.classList.contains("jump")) {
+                dino.classList.add("jump");
+                setTimeout(() => {
+                    dino.classList.remove("jump");
+                }, 500);
             }
+        }
 
-            // Mover Cactus
-            cactusX -= 6;
-            if (cactusX < -20) {
-                cactusX = 600;
-                score += 1;
-            }
+        // Bucle de colisión
+        setInterval(() => {
+            const dinoRect = dino.getBoundingClientRect();
+            const cactusRect = cactus.getBoundingClientRect();
 
-            // Colisión
-            if (cactusX < 90 && cactusX > 50 && dinoY > 120) {
-                active = false;
-                alert("FIN DEL JUEGO\nTotal: " + score + " puntos");
+            // Lógica de colisión precisa basada en pantalla
+            if (
+                dinoRect.right > cactusRect.left && 
+                dinoRect.left < cactusRect.right && 
+                dinoRect.bottom > cactusRect.top
+            ) {
+                alert("¡Game Over! Puntos: " + score);
+                score = 0;
                 location.reload();
+            } else {
+                // El puntaje sube de forma más natural
+                score++;
+                scoreElement.innerHTML = Math.floor(score / 10);
             }
-
-            requestAnimationFrame(draw);
-        }
-
-        function startGame() {
-            if (!active) {
-                active = true;
-                btn.style.display = "none";
-                draw();
-            }
-        }
-
-        // Saltar al tocar cualquier parte o presionar tecla
-        function handleInput() {
-            if (!dinoJump && active) {
-                dinoJump = true;
-                jumpSpeed = 20;
-            }
-        }
-
-        window.addEventListener("touchstart", handleInput);
-        window.addEventListener("mousedown", handleInput);
-        window.addEventListener("keydown", (e) => { if(e.code === "Space") handleInput(); });
+        }, 50);
     </script>
 </body>
 </html>
