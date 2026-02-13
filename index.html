@@ -3,89 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Fix Final</title>
+    <title>Dino Canvas</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
-        body { 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; background-color: #222; overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        #game { 
-            width: 95%; max-width: 500px; height: 150px; 
-            background: #eee; border-bottom: 4px solid #555;
-            position: relative; overflow: hidden;
-        }
-        #dino { 
-            width: 35px; height: 35px; background-color: #333; 
-            position: absolute; bottom: 0; left: 30px; 
-        }
-        #cactus { 
-            width: 20px; height: 35px; background-color: #e74c3c; 
-            position: absolute; bottom: 0; left: 100%; /* Empieza a la derecha */
-        }
-        .jump-anim { animation: jump 0.5s ease-out; }
-        @keyframes jump {
-            0%, 100% { bottom: 0; }
-            50% { bottom: 80px; }
-        }
-        #score { position: absolute; top: 5px; left: 10px; color: #333; font-weight: bold; }
+        body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #333; font-family: sans-serif; }
+        canvas { background: #fff; border-bottom: 5px solid #666; max-width: 100%; height: auto; }
+        #btn { padding: 15px 30px; font-size: 20px; margin-top: 20px; cursor: pointer; background: #2ecc71; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
-<body ontouchstart="jump()" onclick="jump()">
+<body>
 
-    <div id="game">
-        <div id="score">Puntos: 0</div>
-        <div id="dino"></div>
-        <div id="cactus"></div>
-    </div>
+    <canvas id="gameCanvas" width="600" height="200"></canvas>
+    <button id="btn" onclick="startGame()">¡JUGAR!</button>
 
     <script>
-        const dino = document.getElementById("dino");
-        const cactus = document.getElementById("cactus");
-        const scoreDisplay = document.getElementById("score");
-        
-        let cactusX = 100; // Posición en porcentaje (empieza en 100%)
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const btn = document.getElementById("btn");
+
+        let dinoY = 160;
+        let dinoJump = false;
+        let jumpSpeed = 0;
+        let cactusX = 600;
         let score = 0;
-        let gameActive = true;
+        let active = false;
 
-        // Bucle principal del juego (Movimiento y Colisión)
-        function gameLoop() {
-            if (!gameActive) return;
+        function draw() {
+            if (!active) return;
 
-            // 1. Mover el cactus hacia la izquierda
-            cactusX -= 1.5; // Velocidad del cactus
-            if (cactusX < -5) {
-                cactusX = 100; // Reiniciar posición
-                score += 10;
-                scoreDisplay.innerText = "Puntos: " + score;
+            // Limpiar pantalla
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar Dino (Cuadrado Negro)
+            ctx.fillStyle = "#333";
+            ctx.fillRect(50, dinoY, 40, 40);
+
+            // Dibujar Arbusto (Rectángulo Rojo)
+            ctx.fillStyle = "#e74c3c";
+            ctx.fillRect(cactusX, 160, 20, 40);
+
+            // Dibujar Puntaje
+            ctx.fillStyle = "#000";
+            ctx.font = "20px Arial";
+            ctx.fillText("Puntos: " + score, 20, 30);
+
+            // Lógica de Salto
+            if (dinoJump) {
+                dinoY -= jumpSpeed;
+                jumpSpeed -= 1.5;
+                if (dinoY >= 160) {
+                    dinoY = 160;
+                    dinoJump = false;
+                }
             }
-            cactus.style.left = cactusX + "%";
 
-            // 2. Detectar colisión
-            // Obtenemos la altura del dino
-            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
-            
-            // Si el cactus está cerca del dino (entre el 10% y el 20% de la pantalla)
-            // Y el dino está a menos de 35px del suelo
-            if (cactusX > 8 && cactusX < 18 && dinoBottom < 30) {
-                gameActive = false;
-                alert("¡GAME OVER! Tu récord: " + score);
+            // Mover Cactus
+            cactusX -= 6;
+            if (cactusX < -20) {
+                cactusX = 600;
+                score += 1;
+            }
+
+            // Colisión
+            if (cactusX < 90 && cactusX > 50 && dinoY > 120) {
+                active = false;
+                alert("FIN DEL JUEGO\nTotal: " + score + " puntos");
                 location.reload();
             }
 
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame(draw);
         }
 
-        function jump() {
-            if (!dino.classList.contains("jump-anim")) {
-                dino.classList.add("jump-anim");
-                setTimeout(() => dino.classList.remove("jump-anim"), 500);
+        function startGame() {
+            if (!active) {
+                active = true;
+                btn.style.display = "none";
+                draw();
             }
         }
 
-        // Iniciar el juego
-        gameLoop();
+        // Saltar al tocar cualquier parte o presionar tecla
+        function handleInput() {
+            if (!dinoJump && active) {
+                dinoJump = true;
+                jumpSpeed = 20;
+            }
+        }
+
+        window.addEventListener("touchstart", handleInput);
+        window.addEventListener("mousedown", handleInput);
+        window.addEventListener("keydown", (e) => { if(e.code === "Space") handleInput(); });
     </script>
 </body>
 </html>
