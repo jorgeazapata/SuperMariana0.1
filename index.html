@@ -2,62 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dino Game - Versión Forzada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dino Móvil</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
         body { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            background-color: #e0e0e0; 
-            overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; background-color: #f0f0f0; overflow: hidden;
+            font-family: sans-serif;
         }
         #game { 
-            width: 600px; 
-            height: 200px; 
-            background-color: white; 
-            border-bottom: 3px solid #555; 
-            position: relative; 
-            overflow: hidden; /* Esto asegura que el cactus desaparezca al salir */
+            width: 100%; max-width: 500px; height: 200px; 
+            background: white; border-bottom: 2px solid #535353;
+            position: relative; overflow: hidden;
         }
         #dino { 
-            width: 40px; 
-            height: 40px; 
-            background-color: #333; 
-            position: absolute; 
-            bottom: 0; 
-            left: 50px; 
-            z-index: 2;
+            width: 40px; height: 40px; background-color: #535353; 
+            position: absolute; bottom: 0; left: 20px; 
         }
         #cactus { 
-            width: 25px; 
-            height: 45px; 
-            background-color: #2ecc71; /* Color verde arbusto */
-            position: absolute; 
-            bottom: 0; 
-            right: -30px; /* Empieza fuera de la derecha */
-            z-index: 1;
-            animation: cactusMove 1.5s infinite linear;
+            width: 20px; height: 40px; background-color: #2ecc71; 
+            position: absolute; bottom: 0; right: -30px; 
+            animation: move 1.5s infinite linear;
         }
-        .jump { animation: dinoJump 0.5s ease-out; }
+        .jump { animation: jump 0.5s ease-out; }
 
-        @keyframes cactusMove {
+        @keyframes move {
             0% { right: -30px; }
-            100% { right: 650px; } /* Cruza toda el área de 600px */
+            100% { right: 110%; }
         }
-
-        @keyframes dinoJump {
+        @keyframes jump {
             0% { bottom: 0; }
-            50% { bottom: 120px; }
+            50% { bottom: 100px; }
             100% { bottom: 0; }
         }
-
-        #score { position: absolute; top: 10px; right: 20px; font-weight: bold; color: #555; }
+        #score { position: absolute; top: 10px; right: 20px; font-weight: bold; }
     </style>
 </head>
-<body onkeydown="handleKey(event)" onclick="jump()">
+<body ontouchstart="jump()" onclick="jump()">
 
     <div id="game">
         <div id="score">Puntos: 0</div>
@@ -71,12 +53,6 @@
         const scoreDisplay = document.getElementById("score");
         let score = 0;
 
-        function handleKey(e) {
-            if (e.code === "Space" || e.code === "ArrowUp") {
-                jump();
-            }
-        }
-
         function jump() {
             if (!dino.classList.contains("jump")) {
                 dino.classList.add("jump");
@@ -84,24 +60,20 @@
             }
         }
 
-        // Lógica de detección de colisión y puntos
         setInterval(() => {
-            // Obtenemos la posición del Dino (distancia desde el techo)
             let dinoTop = parseInt(window.getComputedStyle(dino).getPropertyValue("top"));
-            // Obtenemos la posición del Cactus (distancia desde la izquierda)
             let cactusLeft = parseInt(window.getComputedStyle(cactus).getPropertyValue("left"));
 
-            // Si el cactus está en el área del Dino y el Dino no saltó lo suficiente
-            if (cactusLeft < 90 && cactusLeft > 50 && dinoTop >= 150) {
-                alert("¡CRASH! Tu puntaje fue: " + score);
+            // Ajuste de colisión para pantallas pequeñas
+            if (cactusLeft < 60 && cactusLeft > 20 && dinoTop >= 160) {
+                alert("¡Perdiste! Puntaje: " + score);
                 score = 0;
                 location.reload();
-            } else if (cactusLeft < 50 && cactusLeft > 45) {
-                // Sumar puntos solo cuando pasa el obstáculo
+            } else if (cactusLeft < 20 && cactusLeft > 15) {
                 score++;
                 scoreDisplay.innerText = "Puntos: " + score;
             }
-        }, 10);
+        }, 50); // Un poco más lento para procesadores móviles
     </script>
 </body>
 </html>
