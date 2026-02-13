@@ -2,36 +2,40 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Dino Reparado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dino Moto G75</title>
     <style>
-        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; overflow: hidden; font-family: sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
+        body { 
+            background: #f0f0f0; 
+            display: flex; justify-content: center; align-items: center; 
+            height: 100vh; overflow: hidden; font-family: sans-serif;
+        }
         #game { 
-            width: 100vw; height: 200px; background: #fff; 
-            position: relative; border-bottom: 5px solid #555;
+            width: 95vw; height: 150px; background: #fff; 
+            position: relative; border-bottom: 3px solid #535353;
+            overflow: hidden;
         }
         #dino { 
-            width: 40px; height: 40px; background: #333; 
-            position: absolute; bottom: 0; left: 20px; 
+            width: 35px; height: 35px; background: #535353; 
+            position: absolute; bottom: 0; left: 30px; 
         }
         #cactus { 
-            width: 20px; height: 40px; background: #ff0000; 
-            position: absolute; bottom: 0; left: 100%; /* Forzado a iniciar en el borde derecho */
+            width: 20px; height: 35px; background: #ff4d4d; 
+            position: absolute; bottom: 0; left: 100%;
         }
-        #score { position: absolute; top: 10px; right: 20px; color: #333; font-size: 24px; font-weight: bold; }
-        
-        /* Solo el salto se queda en CSS por ser más fluido */
+        #score { position: absolute; top: 10px; right: 20px; font-weight: bold; font-size: 20px; }
         .jump { animation: jump 0.5s ease-out; }
         @keyframes jump {
             0%, 100% { bottom: 0; }
-            50% { bottom: 100px; }
+            50% { bottom: 80px; }
         }
     </style>
 </head>
 <body onclick="doJump()" ontouchstart="doJump()">
 
     <div id="game">
-        <div id="score">0</div>
+        <div id="score">COP 0</div>
         <div id="dino"></div>
         <div id="cactus"></div>
     </div>
@@ -42,8 +46,9 @@
         const scoreElement = document.getElementById("score");
         
         let score = 0;
-        let cactusPos = window.innerWidth; // Empezar en el ancho real de tu pantalla
-        let gameSpeed = 5;
+        let gameWidth = document.getElementById("game").offsetWidth;
+        let cactusPos = gameWidth; 
+        let speed = 4;
 
         function doJump() {
             if (!dino.classList.contains("jump")) {
@@ -52,38 +57,35 @@
             }
         }
 
-        function gameLoop() {
-            // Mover el cactus restando píxeles directamente
-            cactusPos -= gameSpeed;
+        function loop() {
+            cactusPos -= speed;
             
-            // Si sale de la pantalla por la izquierda, vuelve a la derecha
+            // Si el cactus sale por la izquierda
             if (cactusPos < -20) {
-                cactusPos = window.innerWidth;
-                score++;
-                scoreElement.innerHTML = score;
-                // Aumentar velocidad poco a poco
-                gameSpeed += 0.2;
+                cactusPos = gameWidth;
+                score += 100;
+                scoreElement.innerHTML = "COP " + score;
+                speed += 0.1;
             }
 
             cactus.style.left = cactusPos + "px";
 
-            // Colisión simplificada
-            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
-            
-            // Si el cactus está pasando por donde está el dino (entre pixel 20 y 60)
-            if (cactusPos > 20 && cactusPos < 60 && dinoBottom < 40) {
-                alert("¡GAME OVER!\nPuntaje: " + score);
-                score = 0;
-                gameSpeed = 5;
-                cactusPos = window.innerWidth;
+            // Colisión
+            let d = dino.getBoundingClientRect();
+            let c = cactus.getBoundingClientRect();
+
+            if (d.right > c.left && d.left < c.right && d.bottom > c.top) {
+                alert("¡GAME OVER!\nTotal: COP " + score);
                 location.reload();
             }
 
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame(loop);
         }
 
-        // Arrancar el motor del juego
-        gameLoop();
+        // Detectar si cambias el tamaño de la pantalla o giras el celular
+        window.onresize = () => { gameWidth = document.getElementById("game").offsetWidth; };
+
+        loop();
     </script>
 </body>
 </html>
