@@ -2,14 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dino Jump Clone</title>
+    <title>Dino Jump Fix</title>
     <style>
-        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f7f7f7; font-family: 'Courier New', Courier, monospace; }
-        #game { width: 600px; height: 200px; border-bottom: 2px solid #535353; overflow: hidden; position: relative; background: white; }
-        #dino { width: 40px; height: 40px; background-color: #535353; position: absolute; bottom: 0; left: 50px; }
-        #cactus { width: 20px; height: 40px; background-color: #ff4d4d; position: absolute; bottom: 0; right: -20px; }
-        .animate-dino { animation: jump 0.5s linear; }
-        .animate-cactus { animation: move 1.5s infinite linear; }
+        body { 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-color: #f0f0f0; 
+            font-family: Arial, sans-serif; 
+        }
+        #game { 
+            width: 600px; 
+            height: 200px; 
+            border-bottom: 2px solid #535353; 
+            position: relative; 
+            background: white; 
+            overflow: hidden;
+        }
+        #dino { 
+            width: 40px; 
+            height: 40px; 
+            background-color: #535353; 
+            position: absolute; 
+            bottom: 0; 
+            left: 50px; 
+        }
+        #cactus { 
+            width: 20px; 
+            height: 40px; 
+            background-color: #ff4d4d; 
+            position: absolute; 
+            bottom: 0; 
+            left: 580px; /* Posición inicial */
+            animation: move 1.5s infinite linear; /* Movimiento constante */
+        }
+        .animate-jump { animation: jump 0.5s linear; }
+        
         @keyframes jump {
             0% { bottom: 0; }
             30% { bottom: 100px; }
@@ -17,16 +47,16 @@
             100% { bottom: 0; }
         }
         @keyframes move {
-            0% { right: -20px; }
-            100% { right: 600px; }
+            0% { left: 600px; }
+            100% { left: -20px; }
         }
-        #score { position: absolute; top: 10px; right: 20px; color: #535353; font-size: 20px; }
+        #score { position: absolute; top: 10px; right: 20px; color: #535353; font-size: 18px; }
     </style>
 </head>
-<body onclick="jump()">
+<body onkeydown="if(event.code==='Space') jump()" onclick="jump()">
 
     <div id="game">
-        <div id="score">0</div>
+        <div id="score">Puntos: 0</div>
         <div id="dino"></div>
         <div id="cactus"></div>
     </div>
@@ -38,27 +68,27 @@
         let score = 0;
 
         function jump() {
-            if (dino.classList != "animate-dino") {
-                dino.classList.add("animate-dino");
+            if (!dino.classList.contains("animate-jump")) {
+                dino.classList.add("animate-jump");
                 setTimeout(() => {
-                    dino.classList.remove("animate-dino");
+                    dino.classList.remove("animate-jump");
                 }, 500);
             }
         }
 
-        let isDead = setInterval(function() {
-            let dinoTop = parseInt(window.getComputedStyle(dino).getPropertyValue("top"));
+        setInterval(() => {
+            // Obtenemos posiciones actuales
+            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
             let cactusLeft = parseInt(window.getComputedStyle(cactus).getPropertyValue("left"));
 
-            // Lógica de colisión
-            if (cactusLeft < 90 && cactusLeft > 50 && dinoTop >= 150) {
-                cactus.style.animation = "none";
-                cactus.style.display = "none";
-                alert("¡Game Over! Puntuación: " + score);
-                location.reload(); // Reinicia el juego
+            // Detección de colisión (Ajustada)
+            if (cactusLeft < 90 && cactusLeft > 50 && dinoBottom <= 40) {
+                alert("¡Game Over! Puntos: " + Math.floor(score/10));
+                score = 0;
+                location.reload();
             } else {
                 score++;
-                scoreElement.innerHTML = Math.floor(score / 10);
+                scoreElement.innerHTML = "Puntos: " + Math.floor(score/10);
             }
         }, 10);
     </script>
