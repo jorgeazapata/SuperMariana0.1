@@ -2,94 +2,88 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dino Final Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dino Reparado</title>
     <style>
-        body { 
-            margin: 0; padding: 0; overflow: hidden; 
-            display: flex; justify-content: center; align-items: center; 
-            height: 100vh; background-color: #f7f7f7; font-family: sans-serif;
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #222; overflow: hidden; font-family: sans-serif; }
+        #game { 
+            width: 100vw; height: 200px; background: #fff; 
+            position: relative; border-bottom: 5px solid #555;
         }
-        #gameContainer {
-            width: 95%; 
-            height: 150px; 
-            background: white; 
-            border-bottom: 2px solid #535353; 
-            position: relative; 
-            overflow: hidden; /* Esto es clave */
+        #dino { 
+            width: 40px; height: 40px; background: #333; 
+            position: absolute; bottom: 0; left: 20px; 
         }
-        #dino {
-            width: 35px; height: 35px; 
-            background-color: #535353; 
-            position: absolute; bottom: 0; left: 20px;
+        #cactus { 
+            width: 20px; height: 40px; background: #ff0000; 
+            position: absolute; bottom: 0; left: 100%; /* Forzado a iniciar en el borde derecho */
         }
-        #cactus {
-            width: 20px; height: 35px; 
-            background-color: #ff4d4d; /* Rojo para que lo veas bien */
-            position: absolute; bottom: 0; 
-            right: -20px; /* Empieza justo afuera */
-        }
-        #score {
-            position: absolute; top: 10px; right: 20px; 
-            font-size: 18px; color: #535353; font-weight: bold;
-        }
-        /* Animaciones */
-        .jump { animation: dinoJump 0.5s ease-out; }
-        .move { animation: cactusMove 1.5s infinite linear; }
-
-        @keyframes dinoJump {
+        #score { position: absolute; top: 10px; right: 20px; color: #333; font-size: 24px; font-weight: bold; }
+        
+        /* Solo el salto se queda en CSS por ser más fluido */
+        .jump { animation: jump 0.5s ease-out; }
+        @keyframes jump {
             0%, 100% { bottom: 0; }
-            50% { bottom: 80px; }
-        }
-        @keyframes cactusMove {
-            0% { right: -20px; }
-            100% { right: 100%; } /* Cruza todo el ancho disponible */
+            50% { bottom: 100px; }
         }
     </style>
 </head>
-<body onclick="jump()" ontouchstart="jump()">
+<body onclick="doJump()" ontouchstart="doJump()">
 
-    <div id="gameContainer">
+    <div id="game">
         <div id="score">0</div>
         <div id="dino"></div>
-        <div id="cactus" class="move"></div>
+        <div id="cactus"></div>
     </div>
 
     <script>
         const dino = document.getElementById("dino");
         const cactus = document.getElementById("cactus");
         const scoreElement = document.getElementById("score");
+        
         let score = 0;
+        let cactusPos = window.innerWidth; // Empezar en el ancho real de tu pantalla
+        let gameSpeed = 5;
 
-        function jump() {
+        function doJump() {
             if (!dino.classList.contains("jump")) {
                 dino.classList.add("jump");
-                setTimeout(() => {
-                    dino.classList.remove("jump");
-                }, 500);
+                setTimeout(() => dino.classList.remove("jump"), 500);
             }
         }
 
-        // Bucle de colisión
-        setInterval(() => {
-            const dinoRect = dino.getBoundingClientRect();
-            const cactusRect = cactus.getBoundingClientRect();
-
-            // Lógica de colisión precisa basada en pantalla
-            if (
-                dinoRect.right > cactusRect.left && 
-                dinoRect.left < cactusRect.right && 
-                dinoRect.bottom > cactusRect.top
-            ) {
-                alert("¡Game Over! Puntos: " + score);
-                score = 0;
-                location.reload();
-            } else {
-                // El puntaje sube de forma más natural
+        function gameLoop() {
+            // Mover el cactus restando píxeles directamente
+            cactusPos -= gameSpeed;
+            
+            // Si sale de la pantalla por la izquierda, vuelve a la derecha
+            if (cactusPos < -20) {
+                cactusPos = window.innerWidth;
                 score++;
-                scoreElement.innerHTML = Math.floor(score / 10);
+                scoreElement.innerHTML = score;
+                // Aumentar velocidad poco a poco
+                gameSpeed += 0.2;
             }
-        }, 50);
+
+            cactus.style.left = cactusPos + "px";
+
+            // Colisión simplificada
+            let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue("bottom"));
+            
+            // Si el cactus está pasando por donde está el dino (entre pixel 20 y 60)
+            if (cactusPos > 20 && cactusPos < 60 && dinoBottom < 40) {
+                alert("¡GAME OVER!\nPuntaje: " + score);
+                score = 0;
+                gameSpeed = 5;
+                cactusPos = window.innerWidth;
+                location.reload();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Arrancar el motor del juego
+        gameLoop();
     </script>
 </body>
 </html>
